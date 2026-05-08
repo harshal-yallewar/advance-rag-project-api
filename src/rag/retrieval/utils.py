@@ -15,9 +15,6 @@ def get_project_settings(project_id):
             .execute()
         )
 
-        if not project_settings_result.data:
-            raise HTTPException(status_code=404, detail="Project settings not found")
-
         project_settings = project_settings_result.data[0]
         return project_settings
     except Exception as e:
