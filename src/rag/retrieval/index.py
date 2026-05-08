@@ -75,7 +75,7 @@ def vector_search(user_query, document_ids, project_settings):
             "chunks_per_search": project_settings["chunks_per_search"],
         },
     ).execute()
-    return vector_search_result_chunks.data if vector_search_result_chunks.data else []
+    return vector_search_result_chunks.data
 
 
 def keyword_search(query, document_ids, settings):
@@ -89,7 +89,7 @@ def keyword_search(query, document_ids, settings):
     ).execute()
 
     return (
-        keyword_search_result_chunks.data if keyword_search_result_chunks.data else []
+        keyword_search_result_chunks.data
     )
 
 
