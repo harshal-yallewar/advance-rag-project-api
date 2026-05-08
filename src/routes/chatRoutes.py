@@ -42,7 +42,7 @@ async def create_chat(
             supabase.table("chats").insert(chat_insert_data).execute()
         )
 
-        if not chat_creation_result.data:
+        if chat_creation_result.data:
             logger.warning( "chat_creation_failed", reason="invalid_data")
             raise HTTPException(
                 status_code=422, detail="Failed to create chat - invalid data provided"
@@ -98,7 +98,7 @@ async def delete_chat(
             supabase.table("chats")
             .delete()
             .eq("id", chat_id)
-            .eq("clerk_id", current_user_clerk_id)
+            # BUG: Security vulnerability - removed ownership check, any authenticated user can delete any chat
             .execute()
         )
         if not chat_deletion_result.data:

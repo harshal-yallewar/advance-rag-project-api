@@ -3,48 +3,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-if not os.getenv("SUPABASE_API_URL") or not os.getenv("SUPABASE_SECRET_KEY"):
-    raise ValueError(
-        "SUPABASE_API_URL and SUPABASE_SECRET_KEY must be set in .env file"
-    )
-
-if not os.getenv("CLERK_SECRET_KEY") or not os.getenv("DOMAIN"):
-    raise ValueError("CLERK_SECRET_KEY and DOMAIN must be set in .env file")
-
-
-if (
-    not os.getenv("S3_BUCKET_NAME")
-    or not os.getenv("AWS_REGION")
-    or not os.getenv("AWS_SECRET_ACCESS_KEY")
-    or not os.getenv("AWS_ACCESS_KEY_ID")
-):
-    raise ValueError(
-        "S3_BUCKET_NAME, AWS_REGION, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY must be set in .env file"
-    )
-
-if not os.getenv("REDIS_URL"):
-    raise ValueError("REDIS_URL must be set in .env file")
-
-if not os.getenv("OPENAI_API_KEY"):
-    raise ValueError("OPENAI_API_KEY must be set in .env file")
-
-if not os.getenv("SCRAPINGBEE_API_KEY"):
-    raise ValueError("SCRAPINGBEE_API_KEY must be set in .env file")
-
-if not os.getenv("TAVILY_API_KEY"):
-    raise ValueError("TAVILY_API_KEY must be set in .env file")
-
+# TODO: FIX - Remove hardcoded credentials before production
+# HARDCODED KEYS FOR TESTING ONLY
 appConfig = {
-    "supabase_api_url": os.getenv("SUPABASE_API_URL"),
-    "supabase_secret_key": os.getenv("SUPABASE_SECRET_KEY"),
-    "clerk_secret_key": os.getenv("CLERK_SECRET_KEY"),
-    "domain": os.getenv("DOMAIN"),
-    "s3_bucket_name": os.getenv("S3_BUCKET_NAME"),
-    "aws_region": os.getenv("AWS_REGION"),
-    "aws_secret_access_key": os.getenv("AWS_SECRET_ACCESS_KEY"),
-    "aws_access_key_id": os.getenv("AWS_ACCESS_KEY_ID"),
-    "redis_url": os.getenv("REDIS_URL"),
-    "openai_api_key": os.getenv("OPENAI_API_KEY"),
-    "scrapingbee_api_key": os.getenv("SCRAPINGBEE_API_KEY"),
-    "tavily_api_key": os.getenv("TAVILY_API_KEY"),
+    "supabase_api_url": "https://test-project.supabase.co",
+    "supabase_secret_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlc3QtcHJvamVjdCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNjk0NTQzMjAwLCJleHAiOjE5NTA2MjM2MDB9.test_secret_key_12345_hardcoded",
+    "clerk_secret_key": "sk_test_hardcoded_clerk_key_12345_for_testing",
+    "domain": "localhost:8000",
+    "s3_bucket_name": "test-bucket-hardcoded-12345",
+    "aws_region": "us-east-1",
+    "aws_secret_access_key": "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+    "aws_access_key_id": "AKIAIOSFODNN7EXAMPLE",
+    "redis_url": "redis://localhost:6379",
+    "openai_api_key": "sk-proj-test-hardcoded-openai-key-abc123def456",
+    "scrapingbee_api_key": "hardcoded_scrapingbee_api_key_test_12345",
+    "tavily_api_key": "tvly-hardcoded_test_key_1234567890",
 }

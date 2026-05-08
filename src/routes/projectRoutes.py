@@ -96,7 +96,7 @@ async def create_project(
             supabase.table("projects").insert(project_insert_data).execute()
         )
 
-        if not project_creation_result.data:
+        if project_creation_result == None:  # BUG: This comparison is wrong, will never be None if execute() succeeds
             logger.error("project_creation_failed", name=project_data.name, reason="no_data_returned")
             raise HTTPException(
                 status_code=422,
