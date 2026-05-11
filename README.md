@@ -1,308 +1,809 @@
-## 💻 Local-Setup Architecture
 
-> 📊 Architecture diagrams in this guide contributed by [@rajatevencodes](https://github.com/rajatevencodes)
+# RepoWhisperer – Agentic Multi-Modal RAG Platform
 
-<p align="center">
-  <img src="https://ik.imagekit.io/5wegcvcxp/Resume-Multi-modal-rag/Local-Architecture.png" alt="Local Setup Architecture" width="100%" height="100%">
-</p>
+An enterprise-grade **Agentic RAG (Retrieval-Augmented Generation)** platform built with **LangGraph**, **FastAPI**, **Supabase**, **AWS S3**, **Redis**, and **OpenAI**.
 
-### RAG Pipelines
+RepoWhisperer allows users to:
 
-_Ingestion | Retrieval | Generation_
+- Upload documents and repositories
+- Ingest PDFs, DOCX, PPTX, Markdown, TXT, and Websites
+- Perform hybrid semantic retrieval
+- Use multi-agent orchestration with LangGraph
+- Stream contextual AI responses in real-time
+- Analyze codebases and project knowledge
+- Maintain conversational memory with citations
 
-<p align="center">
-  <img src="https://ik.imagekit.io/5wegcvcxp/Resume-Multi-modal-rag/Indexing.png" alt="Ingestion Pipeline" width="100%">
-</p>
-<p align="center">
-  <img src="https://ik.imagekit.io/5wegcvcxp/Resume-Multi-modal-rag/Retrieval.png" alt="Retrieval Pipeline" width="100%">
-</p>
-<p align="center">
-  <img src="https://ik.imagekit.io/5wegcvcxp/Resume-Multi-modal-rag/Generation.png" alt="Generation Pipeline" width="100%">
-</p>
+---
 
-<br>
+# 🚀 Features
 
-# 🐳 **Local Docker Setup Guide**
+## Core Features
 
-<br>
+- 📄 Multi-format document ingestion
+- 🌐 Website crawling & ingestion
+- 🧠 Agentic RAG workflows
+- 🔍 Hybrid search (Vector + Keyword)
+- ⚡ Multi-query retrieval optimization
+- 🤖 LangGraph Supervisor Agents
+- 🛡️ Input Guardrails
+- 📦 Chunk summarization & embeddings
+- 📡 Server-Sent Event (SSE) streaming
+- ☁️ AWS S3 document storage
+- 🗄️ PostgreSQL + pgvector via Supabase
+- 🧵 Async ingestion with Celery + Redis
+- 📚 Citation-aware responses
+- 🧾 Context-aware chat history
 
-Complete guide to set up and run the MultiModal RAG application locally using Docker.
+---
 
-<details>
-<summary>📋 <strong>Prerequisites</strong></summary>
+# 🏗️ System Architecture
 
-<br>
+## High-Level Architecture
 
-Before starting, ensure you have:
-
-- **Docker** and **Docker Compose** installed
-- **Node.js** and **npm** installed (for Supabase CLI)
-- **Supabase CLI** installed globally:
-
-```bash
-npm install -g supabase
+```text
+                    ┌──────────────────────────┐
+                    │        Frontend          │
+                    │ React / Angular / Next   │
+                    └────────────┬─────────────┘
+                                 │
+                                 ▼
+                    ┌──────────────────────────┐
+                    │        FastAPI API       │
+                    │  Authentication + RAG    │
+                    └────────────┬─────────────┘
+                                 │
+        ┌────────────────────────┼──────────────────────┐
+        ▼                        ▼                      ▼
+┌──────────────┐      ┌────────────────┐      ┌────────────────┐
+│ AWS S3       │      │ Redis Queue    │      │ Supabase DB    │
+│ Document     │      │ Celery Tasks   │      │ pgvector       │
+│ Storage      │      │ Async Workers  │      │ Metadata       │
+└──────┬───────┘      └────────┬───────┘      └────────┬───────┘
+       │                        │                        │
+       ▼                        ▼                        ▼
+┌───────────────────────────────────────────────────────────────┐
+│                    LangGraph Agent Layer                     │
+│                                                               │
+│  Supervisor Agent  ─────► RAG Agent                          │
+│           │                    │                              │
+│           └──────────────► Web Search Agent                  │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+                    ┌──────────────────────────┐
+                    │       OpenAI Models      │
+                    │ GPT-4o / Embeddings API  │
+                    └──────────────────────────┘
 ```
 
-</details>
+---
 
-<hr>
-<br>
+# 📂 Complete Project Flow
 
-🚀 **Setup Steps**
-<br>
+## 1. Upload Flow
 
-<details>
-<summary><strong>Step 1: Initialize Supabase</strong></summary>
-<br>
+### Step-by-Step Lifecycle
 
-> ⚠️ **IMPORTANT**: Supabase must be initialized before starting Docker containers.
+1. User uploads a document
+2. Frontend requests a presigned upload URL
+3. Backend generates S3 presigned URL
+4. Frontend uploads directly to AWS S3
+5. Backend confirms upload
+6. Backend queues ingestion task
+7. Celery worker starts processing
+8. File is partitioned into atomic elements
+9. Chunks are generated
+10. AI summaries are created
+11. Embeddings are generated
+12. Data stored into Supabase
+13. User starts querying
+14. Retrieval pipeline executes
+15. LangGraph agents synthesize response
+16. SSE stream sends tokens back to frontend
 
-**1.1 Start Supabase**
+---
 
-Start the local Supabase instance: This spins up Docker containers with **Postgres**, **Auth**, **APIs**, etc. Everything needed to set up Supabase locally. It also provides **URLs** and **keys** to connect to your local database, so make sure to use them in your **.env** file.
+# 📥 Ingestion Pipeline
 
-```bash
-npx supabase start
+## Supported Sources
+
+### File Types
+
+- PDF
+- DOCX
+- PPTX
+- TXT
+- Markdown
+- HTML
+
+### Website Sources
+
+- Website crawling using ScrapingBee
+
+---
+
+## Ingestion Architecture
+
+```text
+Document / Website
+        │
+        ▼
+Unstructured Partitioning
+        │
+        ▼
+Atomic Elements
+(Text / Tables / Images / Headers)
+        │
+        ▼
+Chunking By Title
+        │
+        ▼
+AI Summarization
+        │
+        ▼
+Embeddings Generation
+        │
+        ▼
+Supabase + pgvector Storage
 ```
 
-**1.2 Reset Database (Initialize with Migrations)**
+---
 
-Run the migration to create a fresh database with all migration files:
+# 🔍 Retrieval Pipeline
 
-```bash
-npx supabase db reset
+The retrieval system uses an advanced **Multi-Query Hybrid Search** architecture.
+
+## Retrieval Strategy
+
+### Query Expansion
+
+The LLM generates multiple semantic variants of the user query.
+
+Example:
+
+```text
+User Query:
+"Explain transformer attention"
+
+Generated Queries:
+- What is transformer attention?
+- How does self-attention work?
+- Attention mechanism in transformers
 ```
 
-> **What this does**:
->
-> - Stops your local database
-> - Destroys the current database
-> - Creates a fresh database
-> - Runs **all migration files in order** from the beginning
->
-> **Verify in Dashboard**:
-> Visit [http://127.0.0.1:54323/project/default/editor](http://127.0.0.1:54323/project/default/editor) to check your database tables.
+---
 
-**1.3 Verify Supabase**
+## Hybrid Search
 
-Verify Supabase is running:
+Each generated query performs:
 
-```bash
-npx supabase status
+- Vector similarity search
+- Keyword search
+
+Results are merged using:
+
+## Reciprocal Rank Fusion (RRF)
+
+This improves:
+
+- Recall
+- Semantic matching
+- Keyword precision
+
+---
+
+## Retrieval Flow
+
+```text
+User Query
+     │
+     ▼
+Generate Multiple Queries
+     │
+     ▼
+Hybrid Retrieval
+(Vector + Keyword)
+     │
+     ▼
+Reciprocal Rank Fusion
+     │
+     ▼
+Final Context
+     │
+     ▼
+Generation Pipeline
 ```
 
-</details>
+---
 
-<br>
+# 🤖 Agent Architecture
 
-<details>
-<summary><strong>Step 2: Configure Environment Variables</strong></summary>
-<br>
+RepoWhisperer supports two agent modes:
 
-**2.1 Create `.env` file**
+---
 
-Copy the sample environment file:
+# 1. Simple RAG Agent
 
-```bash
-cp .env.sample .env
+A single-agent architecture using LangGraph.
+
+## Responsibilities
+
+- Always call RAG tool
+- Retrieve project-specific context
+- Answer only using retrieved documents
+- Maintain citations
+
+## Flow
+
+```text
+START
+  │
+  ▼
+Guardrail Validation
+  │
+  ▼
+RAG Tool Invocation
+  │
+  ▼
+LLM Response Generation
+  │
+  ▼
+END
 ```
 
-**2.2 Configure Required Variables**
+---
 
-Open `.env` and configure the following **required** variables:
+# 2. Supervisor Multi-Agent Architecture
 
-**Supabase (Required)**
+Advanced orchestration using LangGraph Supervisor patterns.
 
-```bash
-# Auto-configured in Docker-compose file
-SUPABASE_API_URL=http://host.docker.internal:54321
-SUPABASE_SECRET_KEY=your_supabase_secret_key
+## Agents
+
+### Supervisor Agent
+
+Coordinates specialized agents.
+
+### RAG Agent
+
+Handles internal project knowledge.
+
+### Web Search Agent
+
+Handles external internet knowledge.
+
+---
+
+## Supervisor Routing Logic
+
+| Query Type | Routed To |
+|---|---|
+| Project Docs | RAG Agent |
+| Internal Architecture | RAG Agent |
+| Current News | Web Agent |
+| Mixed Query | Both Agents |
+
+---
+
+## Multi-Agent Flow
+
+```text
+User Query
+    │
+    ▼
+Supervisor Agent
+    │
+ ┌──┴─────────────┐
+ ▼                ▼
+RAG Agent     Web Agent
+ │                │
+ └──────┬─────────┘
+        ▼
+Response Synthesis
+        ▼
+Streaming Response
 ```
 
-**Clerk (Required)**
+---
 
-```bash
-CLERK_SECRET_KEY=your_clerk_secret_key
-DOMAIN=http://localhost:8000
+# 🛡️ Guardrails System
+
+The platform contains AI safety validation before execution.
+
+## Checks Performed
+
+### Toxicity Detection
+
+Detect harmful or abusive prompts.
+
+### Prompt Injection Detection
+
+Prevent system prompt manipulation.
+
+### PII Detection
+
+Detect:
+- Emails
+- Phone numbers
+- Sensitive data
+
+---
+
+## Guardrail Flow
+
+```python
+Input → Validation → Safe? → Continue / Reject
 ```
 
-**AWS S3 (Required - for document uploads)**
+---
 
-```bash
-AWS_ACCESS_KEY_ID=your_aws_access_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-AWS_REGION=us-east-1
-S3_BUCKET_NAME=your_bucket_name
+# 🧠 Chunking Strategy
+
+Uses `unstructured.chunking.title.chunk_by_title`.
+
+## Strategy
+
+- Preserve semantic sections
+- Maintain title hierarchy
+- Merge small chunks
+- Limit max chunk size
+
+## Configuration
+
+```python
+max_characters = 3000
+new_after_n_chars = 2400
+combine_text_under_n_chars = 500
 ```
 
-**OpenAI (Required)**
+---
 
-```bash
-OPENAI_API_KEY=your_openai_api_key
+# 📊 Multi-Modal Processing
+
+The ingestion engine supports:
+
+| Content Type | Processing |
+|---|---|
+| Text | Embeddings |
+| Tables | HTML + AI Summary |
+| Images | Base64 + Vision Summary |
+
+---
+
+# 📡 Streaming Architecture
+
+Uses **Server-Sent Events (SSE)**.
+
+## Benefits
+
+- Real-time token streaming
+- Better UX
+- Progressive rendering
+- Lower latency perception
+
+---
+
+# 🗄️ Database Design
+
+## Core Tables
+
+### projects
+
+Stores projects.
+
+### project_documents
+
+Stores uploaded files metadata.
+
+### document_chunks
+
+Stores vectorized chunks.
+
+### chats
+
+Stores chat sessions.
+
+### messages
+
+Stores chat history.
+
+### project_settings
+
+Stores retrieval configurations.
+
+---
+
+# ⚙️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | FastAPI |
+| Agent Framework | LangGraph |
+| LLM Framework | LangChain |
+| Queue | Redis |
+| Worker | Celery |
+| Vector DB | Supabase pgvector |
+| Storage | AWS S3 |
+| Auth | Clerk |
+| Crawling | ScrapingBee |
+| Embeddings | OpenAI |
+| LLM | GPT-4o |
+| Parsing | Unstructured |
+
+---
+
+# 🔧 Environment Variables
+
+```env
+SUPABASE_API_URL=
+SUPABASE_SECRET_KEY=
+
+CLERK_SECRET_KEY=
+DOMAIN=
+
+S3_BUCKET_NAME=
+AWS_REGION=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+
+REDIS_URL=
+
+OPENAI_API_KEY=
+
+SCRAPINGBEE_API_KEY=
+
+TAVILY_API_KEY=
 ```
 
-**Redis(Required)**
+---
 
-```bash
-# (Auto-configured in Docker-compose file)
-REDIS_URL=redis://multimodal-rag-redis:6379/0
+# 📁 Folder Structure
+
+```text
+src/
+│
+├── agents/
+│   ├── simple_agent/
+│   └── supervisor_agent/
+│
+├── rag/
+│   ├── ingestion/
+│   ├── retrieval/
+│   └── generation/
+│
+├── routes/
+│
+├── services/
+│
+├── middleware/
+│
+├── config/
+│
+└── models/
 ```
 
-**2.3 Configure Optional Variables**
+---
 
-**ScrapingBee (Optional - for web scraping)**
+# 🔍 Retrieval Optimization Techniques
 
-```bash
-SCRAPINGBEE_API_KEY=your_scrapingbee_api_key
+## Multi-Query Retrieval
+
+Improves recall using generated semantic variations.
+
+## Hybrid Search
+
+Combines:
+- Dense vector search
+- Sparse keyword retrieval
+
+## Reciprocal Rank Fusion
+
+Ranks documents using combined scoring.
+
+## Reranking
+
+Optional reranking layer for precision improvement.
+
+---
+
+# 📈 Scalability Design
+
+## Horizontal Scaling
+
+### Stateless FastAPI APIs
+
+Can scale independently.
+
+### Celery Workers
+
+Add workers dynamically.
+
+### Redis Queue
+
+Supports distributed task execution.
+
+### S3 Storage
+
+Infinite scalable storage.
+
+### Supabase pgvector
+
+Scalable vector search.
+
+---
+
+# 🔐 Authentication
+
+Authentication is implemented using Clerk.
+
+## Features
+
+- JWT authentication
+- User-scoped projects
+- User-scoped chats
+- Secure APIs
+
+---
+
+# 🧪 Example Query Flow
+
+## User Query
+
+```text
+"Explain the architecture of the ingestion pipeline"
 ```
 
-**Tavily (Optional - for web search)**
+---
 
-```bash
-TAVILY_API_KEY=your_tavily_api_key
+## Execution
+
+1. Supervisor receives query
+2. Routes to RAG Agent
+3. RAG Agent invokes retrieval
+4. Hybrid search retrieves chunks
+5. Relevant chunks fused
+6. GPT-4o generates response
+7. Citations attached
+8. SSE streams response
+
+---
+
+# 📦 AI Summarization Strategy
+
+Tables and images are summarized separately using GPT models.
+
+## Why?
+
+This improves:
+- Searchability
+- Semantic indexing
+- Retrieval relevance
+
+---
+
+# 🖼️ Image Processing
+
+Images are extracted as Base64 payloads.
+
+Vision-capable models generate:
+- Descriptions
+- Visual insights
+- Searchable summaries
+
+---
+
+# 🧠 Embedding Pipeline
+
+## Model
+
+```text
+text-embedding-3-large
 ```
 
-**LangSmith (Optional - for tracing)**
+## Batch Processing
 
-```bash
-LANGSMITH_TRACING=true
-LANGSMITH_ENDPOINT=https://api.smith.langchain.com
-LANGSMITH_API_KEY=your_langsmith_api_key
-LANGSMITH_PROJECT=multi-modal-rag
+Embeddings generated in batches to:
+- Avoid API limits
+- Improve throughput
+- Reduce latency
+
+---
+
+# ⚡ Async Processing
+
+Celery workers process ingestion asynchronously.
+
+## Benefits
+
+- Non-blocking uploads
+- Parallel ingestion
+- Retry handling
+- Scalable architecture
+
+---
+
+# 🧩 LangGraph Design
+
+LangGraph is used for:
+
+- State management
+- Tool orchestration
+- Multi-agent coordination
+- Guardrail routing
+- Citation accumulation
+
+---
+
+# 🧠 Why LangGraph?
+
+## Advantages
+
+- Deterministic workflows
+- Stateful agents
+- Tool routing
+- Multi-agent systems
+- Streaming support
+- Human-in-the-loop support
+
+---
+
+# 📚 Citation Tracking
+
+Custom state accumulates citations across tool calls.
+
+```python
+citations: Annotated[List[Dict[str, Any]], lambda x, y: x + y]
 ```
 
-<br>
+---
 
-> 💡 **Important: Why `host.docker.internal`?**
->
-> Docker containers are **isolated** (redis,worker,api-server) from your computer. Inside Docker, `localhost` means the container itself. To access services running on your machine (like Supabase), containers use `host.docker.internal` instead of `localhost`.
->
-> **Common Mistakes to Avoid:**
->
-> ```bash
-> # ❌ WRONG - won't work in Docker
-> SUPABASE_API_URL=http://localhost:54321
-> REDIS_URL=redis://localhost:6379/0
->
-> # ✅ CORRECT - use proper Docker networking
-> SUPABASE_API_URL=http://host.docker.internal:54321
-> REDIS_URL=redis://multimodal-rag-redis:6379/0
-> ```
+# 🔄 End-to-End Flow Summary
 
-</details>
-
-<br>
-
-<details>
-<summary><strong>Step 3: Start Docker Containers</strong></summary>
-<br>
-
-Use the Makefile commands to manage containers:
-
-**Start all services**
-
-```bash
-make start
+```text
+Upload File
+    │
+    ▼
+Store in S3
+    │
+    ▼
+Queue Task
+    │
+    ▼
+Partition Document
+    │
+    ▼
+Chunking
+    │
+    ▼
+AI Summaries
+    │
+    ▼
+Embeddings
+    │
+    ▼
+Store in Supabase
+    │
+    ▼
+User Query
+    │
+    ▼
+Hybrid Retrieval
+    │
+    ▼
+LangGraph Agents
+    │
+    ▼
+Streaming Response
 ```
 
-This command will:
+---
 
-1. Check if Supabase is running
-2. Build and start all Docker containers in detached mode
+# 🚀 Future Enhancements
 
-**Stop all services**
+## Planned Features
 
-```bash
-make stop
-```
+- Repository code graphing
+- Autonomous code agents
+- PR review agents
+- Code execution sandbox
+- Knowledge graph retrieval
+- MCP integration
+- Deep research workflows
+- Semantic caching
+- Observability dashboards
 
-**Restart all services**
+---
 
-```bash
-make restart
-```
+# 📊 Observability
 
-**Clean everything (containers, volumes, images)**
+Structured logging middleware includes:
 
-```bash
-make clean
-```
+- Request IDs
+- Project IDs
+- User IDs
+- Timing metrics
+- Failure tracking
 
-</details>
+---
 
-<br>
+# 🏁 Production Readiness
 
-<details>
-<summary><strong>Step 4: Create Test Account (Clerk)</strong></summary>
-<br>
+## Enterprise Features
 
-> 🔐 **IMPORTANT**: All API endpoints are secured and require a valid user ID for authentication. You must create a user account first to access any API features.
+- Async architecture
+- Retry mechanisms
+- Streaming responses
+- Multi-agent orchestration
+- Safety guardrails
+- Scalable infrastructure
+- Context-aware retrieval
 
-**4.1 Start the API** (skip this if containers are already running)
+---
 
-```bash
-make start
-```
+# 🧑‍💻 Local Development
 
-**4.2 Create User Account**
-
-1. Navigate to: [http://localhost:8000/docs](http://localhost:8000/docs)
-2. Go to the **`/create`** endpoint
-3. Put data manually using the payload structure from [Clerk webhook documentation](https://clerk.com/docs/guides/development/webhooks/overview#payload-structure)
-
-This step ensures your Supabase database is properly initialized and can handle user creation. **Without this, you cannot interact with any API endpoints.**
-
-</details>
-
-<br>
-<hr>
-<br>
-
-<details>
-<summary>📊 <strong>Viewing Logs</strong></summary>
-<br>
-
-Monitor logs for specific services:
-
-**API Server logs**
+## Install Dependencies
 
 ```bash
-make logs-api
+pip install -r requirements.txt
 ```
 
-**Redis logs**
+---
+
+## Run Backend
 
 ```bash
-make logs-redis
+uvicorn src.main:app --reload
 ```
 
-**Worker logs**
+---
+
+## Run Celery Worker
 
 ```bash
-make logs-worker
+celery -A src.worker worker --loglevel=info
 ```
 
-> Press `Ctrl+C` to exit log viewing.
+---
 
-</details>
+# 📜 License
 
-<br>
+MIT License
 
-<details>
-<summary>📖 <strong>Quick Reference</strong></summary>
-<br>
+---
 
-| Command                 | Description                                |
-| ----------------------- | ------------------------------------------ |
-| `npx supabase start`    | Start local Supabase                       |
-| `npx supabase status`   | Check Supabase status                      |
-| `npx supabase db reset` | Reset database to clean state              |
-| `make start`            | Start all Docker containers                |
-| `make stop`             | Stop all Docker containers                 |
-| `make restart`          | Restart all containers                     |
-| `make clean`            | Remove all containers, volumes, and images |
-| `make logs-api`         | View API server logs                       |
-| `make logs-redis`       | View Redis logs                            |
-| `make logs-worker`      | View worker logs                           |
+# 🙌 Credits
 
-</details>
+Built using:
+
+- LangGraph
+- LangChain
+- FastAPI
+- OpenAI
+- Supabase
+- Celery
+- Redis
+- AWS
+- Unstructured
+
+---
+
+# ⭐ Final Notes
+
+RepoWhisperer demonstrates a modern production-grade implementation of:
+
+- Agentic AI
+- Retrieval-Augmented Generation
+- Multi-agent orchestration
+- Hybrid retrieval systems
+- Streaming AI UX
+- Multi-modal document intelligence
+
+This architecture is highly scalable and suitable for:
+
+- Enterprise knowledge systems
+- AI copilots
+- Repository intelligence
+- Internal documentation search
+- Research assistants
+- AI developer tools
