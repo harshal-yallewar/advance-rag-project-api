@@ -1,9 +1,9 @@
 
-# RepoWhisperer – Agentic Multi-Modal RAG Platform
+# Advanced RAG Project – Agentic Multi-Modal RAG Platform
 
 An enterprise-grade **Agentic RAG (Retrieval-Augmented Generation)** platform built with **LangGraph**, **FastAPI**, **Supabase**, **AWS S3**, **Redis**, and **OpenAI**.
 
-RepoWhisperer allows users to:
+Advanced RAG Project allows users to:
 
 - Upload documents and repositories
 - Ingest PDFs, DOCX, PPTX, Markdown, TXT, and Websites
@@ -219,7 +219,7 @@ Generation Pipeline
 
 # 🤖 Agent Architecture
 
-RepoWhisperer supports two agent modes:
+Advanced RAG Project supports two agent modes:
 
 ---
 
@@ -790,7 +790,7 @@ Built using:
 
 # ⭐ Final Notes
 
-RepoWhisperer demonstrates a modern production-grade implementation of:
+Advanced RAG Project demonstrates a modern production-grade implementation of:
 
 - Agentic AI
 - Retrieval-Augmented Generation
